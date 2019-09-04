@@ -149,9 +149,9 @@ impl Clone for Item {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Rank {
-    pub score: i64,
+    pub score: Vec<i64>,
     pub index: i64,
     pub begin: i64,
     pub end: i64,

@@ -31,7 +31,7 @@ pub trait MatchEngine: Sync + Send {
     fn display(&self) -> String;
 }
 
-fn build_rank(score: i64, index: i64, begin: i64, end: i64) -> Rank {
+fn build_rank(score: Vec<i64>, index: i64, begin: i64, end: i64) -> Rank {
     Rank {
         score,
         index,
@@ -77,8 +77,8 @@ impl MatchEngine for RegexEngine {
         }
 
         let (begin, end) = matched_result?;
-        let score = (end - begin) as i64;
-        let rank = build_rank(-score, item.get_index() as i64, begin as i64, end as i64);
+        let score = vec![-((end - begin) as i64)];
+        let rank = build_rank(score, item.get_index() as i64, begin as i64, end as i64);
 
         Some(
             MatchedItem::builder(item)
@@ -141,11 +141,12 @@ impl MatchEngine for FuzzyEngine {
         }
 
         let (score, matched_range) = matched_result.unwrap();
+        let score = vec![-score];
 
         let begin = *matched_range.get(0).unwrap_or(&0) as i64;
         let end = *matched_range.last().unwrap_or(&0) as i64;
 
-        let rank = build_rank(-score, item.get_index() as i64, begin, end);
+        let rank = build_rank(score, item.get_index() as i64, begin, end);
 
         Some(
             MatchedItem::builder(item)
@@ -204,8 +205,8 @@ impl ExactEngine {
         let (s, e) = filter(&matched_result, range_end - range_start)?;
 
         let (begin, end) = (s + range_start, e + range_start);
-        let score = (end - begin) as i64;
-        let rank = build_rank(-score, item.get_index() as i64, begin as i64, end as i64);
+        let score = vec![-((end - begin) as i64)];
+        let rank = build_rank(score, item.get_index() as i64, begin as i64, end as i64);
 
         Some(
             MatchedItem::builder(item)
@@ -343,7 +344,7 @@ impl AndEngine {
     }
 
     fn merge_matched_items(&self, items: Vec<MatchedItem>) -> MatchedItem {
-        let rank = items[0].rank;
+        let rank = items[0].rank.clone();
         let item = Arc::clone(&items[0].item);
         let mut ranges = vec![];
         for item in items {
