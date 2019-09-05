@@ -159,7 +159,7 @@ impl Skim {
         while !reader_control.is_done() {
             for item in reader_control.take().into_iter() {
                 if let Some(matched) = engine.match_item(item) {
-                    println!("{}\t{}", -matched.rank.score.first().unwrap(), matched.item.get_output_text());
+                    println!("{:?}\t{}", matched.rank.score, matched.item.get_output_text());
                     match_count += 1;
                 }
             }

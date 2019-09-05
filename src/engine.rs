@@ -120,28 +120,27 @@ impl FuzzyEngine {
 impl MatchEngine for FuzzyEngine {
     fn match_item(&self, item: Arc<Item>) -> Option<MatchedItem> {
         // iterate over all matching fields:
-        let mut matched_result = None;
+        let mut matched_results: Vec<(i64, Vec<usize>)> = Vec::new();
         for &(start, end) in item.get_matching_ranges() {
-            matched_result = score::fuzzy_match(&item.get_text()[start..end], &self.query).map(|(s, vec)| {
-                if start != 0 {
-                    let start_char = &item.get_text()[..start].chars().count();
-                    (s, vec.iter().map(|x| x + start_char).collect())
-                } else {
-                    (s, vec)
-                }
-            });
-
-            if matched_result.is_some() {
-                break;
+            if let Some((s, vec)) = score::fuzzy_match(&item.get_text()[start..end], &self.query) {
+                matched_results.push(
+                    if start != 0 {
+                        let start_char = &item.get_text()[..start].chars().count();
+                        (s, vec.iter().map(|x| x + start_char).collect())
+                    } else {
+                        (s, vec)
+                    }
+                );
             }
         }
 
-        if matched_result == None {
+        if matched_results.len() == 0 {
             return None;
         }
 
-        let (score, matched_range) = matched_result.unwrap();
-        let score = vec![-score];
+        let mut score: Vec<i64> = matched_results.iter().map(|(s, _vec)| -s).collect();
+        score.sort_unstable();
+        let matched_range = matched_results.remove(0).1; // TODO
 
         let begin = *matched_range.get(0).unwrap_or(&0) as i64;
         let end = *matched_range.last().unwrap_or(&0) as i64;
