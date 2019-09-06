@@ -1,5 +1,5 @@
 ///! matcher engine
-use crate::item::{Item, MatchedItem, MatchedRange, Rank};
+use crate::item::{Item, MatchedItem, MatchedRange, Rank, Score};
 use crate::score;
 use regex::Regex;
 use std::sync::Arc;
@@ -31,7 +31,7 @@ pub trait MatchEngine: Sync + Send {
     fn display(&self) -> String;
 }
 
-fn build_rank(score: Vec<i64>, index: i64, begin: i64, end: i64) -> Rank {
+fn build_rank(score: Score, index: i64, begin: i64, end: i64) -> Rank {
     Rank {
         score,
         index,
@@ -78,7 +78,7 @@ impl MatchEngine for RegexEngine {
 
         let (begin, end) = matched_result?;
         let score = vec![-((end - begin) as i64)];
-        let rank = build_rank(score, item.get_index() as i64, begin as i64, end as i64);
+        let rank = build_rank(Score(score), item.get_index() as i64, begin as i64, end as i64);
 
         Some(
             MatchedItem::builder(item)
@@ -145,7 +145,7 @@ impl MatchEngine for FuzzyEngine {
         let begin = *matched_range.get(0).unwrap_or(&0) as i64;
         let end = *matched_range.last().unwrap_or(&0) as i64;
 
-        let rank = build_rank(score, item.get_index() as i64, begin, end);
+        let rank = build_rank(Score(score), item.get_index() as i64, begin, end);
 
         Some(
             MatchedItem::builder(item)
@@ -205,7 +205,7 @@ impl ExactEngine {
 
         let (begin, end) = (s + range_start, e + range_start);
         let score = vec![-((end - begin) as i64)];
-        let rank = build_rank(score, item.get_index() as i64, begin as i64, end as i64);
+        let rank = build_rank(Score(score), item.get_index() as i64, begin as i64, end as i64);
 
         Some(
             MatchedItem::builder(item)
