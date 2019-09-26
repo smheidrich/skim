@@ -120,15 +120,15 @@ impl FuzzyEngine {
 impl MatchEngine for FuzzyEngine {
     fn match_item(&self, item: Arc<Item>) -> Option<MatchedItem> {
         // iterate over all matching fields:
-        let mut matched_results: Vec<(i64, Vec<usize>)> = Vec::new();
+        let mut matched_results: Vec<(i64, Vec<usize>, i64)> = Vec::new();
         for &(start, end) in item.get_matching_ranges() {
             if let Some((s, vec)) = score::fuzzy_match(&item.get_text()[start..end], &self.query) {
                 matched_results.push(
                     if start != 0 {
                         let start_char = &item.get_text()[..start].chars().count();
-                        (s, vec.iter().map(|x| x + start_char).collect())
+                        (s, vec.iter().map(|x| x + start_char).collect(), (end-start) as i64)
                     } else {
-                        (s, vec)
+                        (s, vec, (end-start) as i64)
                     }
                 );
             }
@@ -138,7 +138,7 @@ impl MatchEngine for FuzzyEngine {
             return None;
         }
 
-        let mut score: Vec<i64> = matched_results.iter().map(|(s, _vec)| -s).collect();
+        let mut score: Vec<i64> = matched_results.iter().map(|(s, _vec, l)| -s+l*100).collect();
         score.sort_unstable();
         let matched_range = matched_results.remove(0).1; // TODO
 
