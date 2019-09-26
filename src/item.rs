@@ -9,6 +9,7 @@ use std::cmp::min;
 use std::default::Default;
 use std::ops::Deref;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::cmp;
 use std::sync::Arc;
 
 /// An item will store everything that one line input will need to be operated and displayed.
@@ -149,8 +150,32 @@ impl Clone for Item {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Score(pub Vec<i64>);
+
+impl Ord for Score {
+    fn cmp(&self, other: &Score) -> cmp::Ordering {
+        let min_len = min(self.0.len(), other.0.len());
+        let equilen_ordering = {
+            if min_len > 0 {
+                self.0[..min_len].cmp(&other.0[..min_len])
+            } else {
+                cmp::Ordering::Equal
+            }
+        };
+        if equilen_ordering == cmp::Ordering::Equal {
+            other.0.len().cmp(&self.0.len())
+        } else {
+            equilen_ordering
+        }
+    }
+}
+
+impl PartialOrd for Score {
+    fn partial_cmp(&self, other: &Score) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Rank {
