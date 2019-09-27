@@ -137,6 +137,7 @@ pub fn get_string_by_range<'a>(delimiter: &Regex, text: &'a str, range: &str) ->
 // -> a vector of the matching fields (byte wise).
 // Given delimiter `,`, text: "a,b,c"
 // &[Single(2), LeftInf(2)] => [(2, 4), (0, 4)]
+// XXX SKIM-UNICODE: changed from this ^ behaviour so it doesn't include the delimiter
 pub fn parse_matching_fields(delimiter: &Regex, text: &str, fields: &[FieldRange]) -> Vec<(usize, usize)> {
     let ranges = get_ranges_by_delimiter(delimiter, text);
 
@@ -144,7 +145,7 @@ pub fn parse_matching_fields(delimiter: &Regex, text: &str, fields: &[FieldRange
     for field in fields {
         if let Some((start, stop)) = field.to_index_pair(ranges.len()) {
             let &(begin, _) = &ranges[start];
-            let &(end, _) = ranges.get(stop).unwrap_or(&(text.len(), 0));
+            let &(_, end) = ranges.get(stop-1).unwrap_or(&(text.len(), 0));
             ret.push((begin, end));
         }
     }
