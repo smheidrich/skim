@@ -138,8 +138,12 @@ impl MatchEngine for FuzzyEngine {
             return None;
         }
 
-        let mut score: Vec<i64> = matched_results.iter().map(|(s, _vec, l)| -s+l*100).collect();
+        // this is a bit messy but who cares: bonus if we have any alternative names at all
+        let altb = (item.get_matching_ranges().len() > 2) as i64;
+
+        let mut score: Vec<i64> = matched_results.iter().map(|(s, _vec, l)| -s+l*100-500*altb).collect();
         score.sort_unstable();
+
         let matched_range = matched_results.remove(0).1; // TODO
 
         let begin = *matched_range.get(0).unwrap_or(&0) as i64;
