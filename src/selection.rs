@@ -387,7 +387,7 @@ impl Selection {
                 printer.print_char(canvas, ch, default_attr.extend(attr), false);
             }
         } else {
-            for ch in item.get_text().chars() {
+            for ch in (item.get_text().to_owned() + &format!("  {:?}", matched_item.rank.score)).chars() {
                 printer.print_char(canvas, ch, default_attr, false);
             }
         }
