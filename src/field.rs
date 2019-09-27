@@ -191,6 +191,13 @@ mod test {
     use regex::Regex;
 
     #[test]
+    fn test_get_ranges_by_delimiter() {
+        assert_eq!(get_ranges_by_delimiter(&Regex::new(",").unwrap(), "a,b,c"), [(0,1),(2,3),(4,5)]);
+        assert_eq!(get_ranges_by_delimiter(&Regex::new(",,").unwrap(), "a,,bb,,c"), [(0,1),(3,5),(7,8)]);
+    }
+
+
+    #[test]
     fn test_parse_field_range() {
         assert_eq!(Single(0).to_index_pair(10), None);
         assert_eq!(Single(1).to_index_pair(10), Some((0, 1)));
